@@ -31,7 +31,7 @@ There is a lot of information at Lua users wiki that describes calling C from Lu
 
 The functions that will be exposed to Lua need to be defined in the following code:
 
-```
+```lua
 static const struct luaL_Reg as_client [] = {
         {"connect", connect},
         {"disconnect", disconnect},
@@ -47,12 +47,12 @@ extern int luaopen_aerospike(lua_State *L){
 }
 ```
 
-This function is called by the require statement in Lua. When require is called Lua will look for a library named “aerospike.so” on it’s library path. Be sure to put aerospike.so in one of the folowing directories:
+This function is called by the require statement in Lua. When require is called Lua will look for a library named “as_lua.so” on it’s library path. Be sure to put as_lua.so in one of the folowing directories:
 
 ```
-./aerospike.so
-/usr/local/lib/lua/5.1/aerospike.so
-/usr/lib/lua/5.1/aerospike.so
+./as_lua.so
+/usr/local/lib/lua/5.1/as_lua.so
+/usr/lib/lua/5.1/as_lua.so
 ```
 
 The C function lua_open_aerospike is called by the Lua function require “aerospike”. At the start of you Lua application you should have code like this:
@@ -142,6 +142,7 @@ Our Lua function to disconnect from the cluster will take one parameter that is 
 
 The C code to implement this function:
 
+```C
 static int disconnect(lua_State *L){
     aerospike* as = lua_touserdata(L, 1);
     as_error err;
@@ -150,6 +151,7 @@ static int disconnect(lua_State *L){
     lua_pushstring(L, err.message);
     return 2;
 }
+```
 
 You should be seeing a pattern emerging in the way the parameters are passed to the function 
 and how values are returned. The actual code that interacts with Aerospike is trivial. 
@@ -239,7 +241,7 @@ static as_record add_bins_to_rec(lua_State *L, int index, int numBins)
 ##Increment
 The increment function is quite similar to the put function in that it changes the value of one or more Bins in a record. It is useful when your application uses counters, and it also removes the need to read the value, increment the value in your application and rewrite it.
 
-```
+```lua
 bins = {}
 bins["counter"] = 1
 err, message = as.increment(cluster, "test", "test", "peter003", 1, bins)
