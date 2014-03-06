@@ -248,15 +248,13 @@ print("incremented record", err, message)
 
 #Putting it all together
 ##Compiling and linking the C wrapper
-To compile the C wrapper you will need the following gcc flags:
+Run the Makefile located in the root directory of the repository
 
 ```
--std=gnu99 -g -rdynamic -Wall -fno-common -fno-strict-aliasing 
--fPIC -DMARCH_$(ARCH) -D_FILE_OFFSET_BITS=64 
--D_REENTRANT -D_GNU_SOURCE -DMEM_COUNT
+make
 ```
 
-Your linkage target should be a shared library “aerospike.so” and should include the following dependent libraries:
+Your linkage target will be a shared library “as_lua.so” and should include the following dependent libraries:
 ```
 aerospike
 ssl
@@ -267,7 +265,7 @@ lua
 m
 ```
 
-IMPORTANT: The shared library aerospike.so should be placed in the Lua library path.
+IMPORTANT: The shared library as_lua.so should be placed in the Lua library path.
 Lua application to calling Aerospike
 
 This example includes a simple Lua program that exercises each function implemented in the library. 
