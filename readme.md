@@ -41,8 +41,8 @@ static const struct luaL_Reg as_client [] = {
         {NULL, NULL}
 };
 
-extern int luaopen_aerospike(lua_State *L){
-    luaL_register(L, "aerospike", as_client);
+extern int luaopen_as_lua(lua_State *L){
+    luaL_register(L, "as_lua", as_client);
     return 0;
 }
 ```
@@ -58,7 +58,7 @@ This function is called by the require statement in Lua. When require is called 
 The C function lua_open_aerospike is called by the Lua function require “aerospike”. At the start of you Lua application you should have code like this:
 
 ```lua
-local as = require "aerospike"
+local as = require "as_lua"
 ```
  
 ##Connect
@@ -250,13 +250,13 @@ print("incremented record", err, message)
 
 #Putting it all together
 ##Compiling and linking the C wrapper
-Run the Makefile located in the root directory of the repository
+Run the build.sh located in the root directory of the repository to build the library "as_lua.so"
 
 ```
-make
+./build.sh
 ```
 
-Your linkage target will be a shared library “as_lua.so” and should include the following dependent libraries:
+The shared library “as_lua.so” has  dependencies on these libraries:
 ```
 aerospike
 ssl
