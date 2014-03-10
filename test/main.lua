@@ -1,5 +1,5 @@
 
-local as = require "aerospike"
+local as = require "as_lua"
 
 local function main()
   local record

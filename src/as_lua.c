@@ -253,8 +253,8 @@ static const struct luaL_Reg as_client [] = {
 		{NULL, NULL}
 };
 
-extern int luaopen_aerospike(lua_State *L){
-	luaL_register(L, "aerospike", as_client);
+extern int luaopen_as_lua(lua_State *L){
+	luaL_register(L, "as_lua", as_client);
 	return 0;
 }
 
