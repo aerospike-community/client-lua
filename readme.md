@@ -31,7 +31,7 @@ There is a lot of information at Lua users wiki that describes calling C from Lu
 
 The functions that will be exposed to Lua need to be defined in the following code:
 
-```
+```lua
 static const struct luaL_Reg as_client [] = {
         {"connect", connect},
         {"disconnect", disconnect},
@@ -41,24 +41,24 @@ static const struct luaL_Reg as_client [] = {
         {NULL, NULL}
 };
 
-extern int luaopen_aerospike(lua_State *L){
-    luaL_register(L, "aerospike", as_client);
+extern int luaopen_as_lua(lua_State *L){
+    luaL_register(L, "as_lua", as_client);
     return 0;
 }
 ```
 
-This function is called by the require statement in Lua. When require is called Lua will look for a library named “aerospike.so” on it’s library path. Be sure to put aerospike.so in one of the folowing directories:
+This function is called by the require statement in Lua. When require is called Lua will look for a library named “as_lua.so” on it’s library path. Be sure to put as_lua.so in one of the folowing directories:
 
 ```
-./aerospike.so
-/usr/local/lib/lua/5.1/aerospike.so
-/usr/lib/lua/5.1/aerospike.so
+./as_lua.so
+/usr/local/lib/lua/5.1/as_lua.so
+/usr/lib/lua/5.1/as_lua.so
 ```
 
 The C function lua_open_aerospike is called by the Lua function require “aerospike”. At the start of you Lua application you should have code like this:
 
 ```lua
-local as = require "aerospike"
+local as = require "as_lua"
 ```
  
 ##Connect
@@ -142,6 +142,7 @@ Our Lua function to disconnect from the cluster will take one parameter that is 
 
 The C code to implement this function:
 
+```C
 static int disconnect(lua_State *L){
     aerospike* as = lua_touserdata(L, 1);
     as_error err;
@@ -150,6 +151,7 @@ static int disconnect(lua_State *L){
     lua_pushstring(L, err.message);
     return 2;
 }
+```
 
 You should be seeing a pattern emerging in the way the parameters are passed to the function 
 and how values are returned. The actual code that interacts with Aerospike is trivial. 
@@ -239,7 +241,7 @@ static as_record add_bins_to_rec(lua_State *L, int index, int numBins)
 ##Increment
 The increment function is quite similar to the put function in that it changes the value of one or more Bins in a record. It is useful when your application uses counters, and it also removes the need to read the value, increment the value in your application and rewrite it.
 
-```
+```lua
 bins = {}
 bins["counter"] = 1
 err, message = as.increment(cluster, "test", "test", "peter003", 1, bins)
@@ -248,15 +250,13 @@ print("incremented record", err, message)
 
 #Putting it all together
 ##Compiling and linking the C wrapper
-To compile the C wrapper you will need the following gcc flags:
+Run the build.sh located in the root directory of the repository to build the library "as_lua.so"
 
 ```
--std=gnu99 -g -rdynamic -Wall -fno-common -fno-strict-aliasing 
--fPIC -DMARCH_$(ARCH) -D_FILE_OFFSET_BITS=64 
--D_REENTRANT -D_GNU_SOURCE -DMEM_COUNT
+./build.sh
 ```
 
-Your linkage target should be a shared library “aerospike.so” and should include the following dependent libraries:
+The shared library “as_lua.so” has  dependencies on these libraries:
 ```
 aerospike
 ssl
@@ -267,7 +267,7 @@ lua
 m
 ```
 
-IMPORTANT: The shared library aerospike.so should be placed in the Lua library path.
+IMPORTANT: The shared library as_lua.so should be placed in the Lua library path.
 Lua application to calling Aerospike
 
 This example includes a simple Lua program that exercises each function implemented in the library. 
