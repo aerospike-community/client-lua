@@ -14,11 +14,14 @@ It therefore has all the dependencies of the Aerospike C client, and following
 the Aerospike C client build process is required.
 
 ##Build
-To build the debug target, navigate to the "Debug" directory then run the makefile
-To build the release target, navigate to the "Release" directory and run the makefile
-
-Note: At the time of writing the Aerospike C API code only supports Linux, so your Lua application 
-that uses Aerospike will only work on Linux.
+To build on Linux, run the command
+```
+./build_linux.sh
+```
+To build on OS X, run the command
+```
+./build_osx.sh
+```
 
 ##Usage
 The target library needs to be on the Lua path to be available to the Lua application.

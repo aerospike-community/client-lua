@@ -7,7 +7,7 @@ local function main()
   local message
   local cluster
   
-  err, message, cluster = as.connect("localhost", 3000)
+  err, message, cluster = as.connect("192.168.180.129", 3000)
   print("connected", err, message)
   
   local bins = {}
