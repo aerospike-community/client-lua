@@ -13,7 +13,10 @@ This example is implemented in C as a library (.so) and wraps the Aerospike 3 C 
 It therefore has all the dependencies of the Aerospike C client, and following
 the Aerospike C client build process is required.
 
-##Build
+
+##Compiling and linking the C wrapper
+Run the build script located in the root directory of the repository to build the library "as_lua.so"
+
 To build on Linux, run the command
 ```
 ./build_linux.sh
@@ -21,6 +24,17 @@ To build on Linux, run the command
 To build on OS X, run the command
 ```
 ./build_osx.sh
+```
+
+The shared library “as_lua.so” has  dependencies on these libraries:
+```
+aerospike
+ssl
+crypto
+pthread
+rt
+lua
+m
 ```
 
 ##Usage
@@ -251,24 +265,6 @@ err, message = as.increment(cluster, "test", "test", "peter003", 1, bins)
 print("incremented record", err, message)
 ```
 
-#Putting it all together
-##Compiling and linking the C wrapper
-Run the build.sh located in the root directory of the repository to build the library "as_lua.so"
-
-```
-./build.sh
-```
-
-The shared library “as_lua.so” has  dependencies on these libraries:
-```
-aerospike
-ssl
-crypto
-pthread
-rt
-lua
-m
-```
 
 IMPORTANT: The shared library as_lua.so should be placed in the Lua library path.
 Lua application to calling Aerospike
