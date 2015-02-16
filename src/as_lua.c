@@ -17,6 +17,11 @@
 #include <aerospike/as_record_iterator.h>
 #include <aerospike/as_iterator.h>
 #include <aerospike/as_status.h>
+#include <aerospike/as_arraylist.h>
+#include <aerospike/as_arraylist_iterator.h>
+#include <aerospike/as_list.h>
+#include <aerospike/as_map.h>
+
 
 static as_record add_bins_to_rec(lua_State *L, int index, int numBins)
 {
@@ -36,16 +41,37 @@ static as_record add_bins_to_rec(lua_State *L, int index, int numBins)
         // copy the key so that lua_tostring does not modify the original
         lua_pushvalue(L, -2);
         // stack now contains: -1 => key; -2 => value; -3 => key; -4 => table
-        const char *key = lua_tostring(L, -1);
+        const char *binName = lua_tostring(L, -1);
 
         // add to record
         if (lua_isnumber(L, -2)){
         	int intValue = lua_tointeger(L, -2);
-        	as_record_set_int64(&rec, key, intValue);
+        	as_record_set_int64(&rec, binName, intValue);
 
         } else if (lua_isstring(L, -2)){
         	const char *value = lua_tostring(L, -2);
-        	as_record_set_str(&rec, key, value);
+        	as_record_set_str(&rec, binName, value);
+        } else if (lua_istable(L, -2)){
+	    	// make a as_list and populate it
+        	as_arraylist *list = as_arraylist_new(3, 3);
+            
+        	lua_pushvalue(L, -2);
+        	lua_pushnil(L);
+        	    // This is needed for it to even get the first value
+        	    while (lua_next(L, -2))
+        	    {
+        	    	lua_pushvalue(L, -2);
+        	    	//const char *key = lua_tostring(L, -1);
+        	    	const char *value = lua_tostring(L, -2);
+        	    	// populate the as_list
+        	    	as_arraylist_append_str(list, value);
+        	    	//printf("%s => %s\n", key, value);
+        	        lua_pop(L, 2);
+        	    }
+        	lua_pop(L, 1);
+            
+	    	// put the list in a bin
+        	as_record_set_list(&rec, binName, (as_list*)as_val_reserve(list));
         }
         // pop value + copy of key, leaving original key
         lua_pop(L, 2);
@@ -59,6 +85,8 @@ static as_record add_bins_to_rec(lua_State *L, int index, int numBins)
     // Stack is now the same as it was on entry to this function
     return rec;
 }
+
+
 
 static as_operations add_bins_to_increment(lua_State *L, int index, int numBins)
 {
@@ -80,7 +108,9 @@ static as_operations add_bins_to_increment(lua_State *L, int index, int numBins)
         // stack now contains: -1 => key; -2 => value; -3 => key; -4 => table
         const char *binName = lua_tostring(L, -1);
         int intValue = lua_tointeger(L, -2);
-        printf("Bin:%s, value:%d\n", binName, intValue);
+        
+        //printf("Bin:%s, value:%d\n", binName, intValue);
+        
     	//add an operation for each bin
     	as_operations_add_incr(&ops, binName, intValue);
         // pop value + copy of key, leaving original key
@@ -133,11 +163,12 @@ static int disconnect(lua_State *L){
 	return 2;
 }
 static int get(lua_State *L){
+	//printf("-get-\n");
 	aerospike* as = lua_touserdata(L, 1);
 	const char* nameSpace = luaL_checkstring(L, 2);
 	const char* set = luaL_checkstring(L, 3);
 	const char* keyString = luaL_checkstring(L, 4);
-
+	//printf("key-:%s\n", keyString);
 	as_record* rec = NULL;
 	as_key key;
 	as_error err;
@@ -153,8 +184,9 @@ static int get(lua_State *L){
 	lua_pushstring(L, err.message);
 
 	// Create an new table and push it
-	lua_newtable(L);
 	if ( err.code == AEROSPIKE_OK){
+        
+		lua_newtable(L); /* create table to hold Bins read */
 		/*
 		 * iterate through bin and add the bin name
 		 * and value to the table
@@ -165,20 +197,58 @@ static int get(lua_State *L){
 		while (as_record_iterator_has_next(&it)) {
 		    as_bin *bin        = as_record_iterator_next(&it);
 		    as_val *value      = (as_val*)as_bin_get_value(bin);
-		    as_integer *ivalue = as_integer_fromval(value);
+            char * binName = as_bin_get_name(bin);
+            
+		    int bin_type = as_val_type(value); //Bin Type
 
-		    lua_pushstring(L, as_bin_get_name(bin)); //Bin name
-
-		    if (ivalue) {
-		        lua_pushnumber(L, as_integer_get(ivalue));
-		    } else {
-		       lua_pushstring(L, as_val_tostring(value));
+		    switch (bin_type){
+		    case AS_INTEGER:
+                   
+		    	//printf("--integer-%s-\n", binName);
+			    lua_pushstring(L, binName); //Bin name
+		    	lua_pushnumber(L, as_integer_get(as_integer_fromval(value)));
+		    	//printf("--integer-end-\n");
+		    	break;
+		    case AS_STRING:
+		    	//printf("--string-%s-\n", binName);
+			    lua_pushstring(L, binName); //Bin name
+		    	lua_pushstring(L, as_val_tostring(value));
+		    	//printf("--string-end-\n");
+		    	break;
+		    case AS_LIST:
+		    	//printf("--list-%s-\n", binName);
+			    lua_pushstring(L, binName); //Bin name
+		    	// Iterate through arraylist populating table
+		    	as_list* p_list = as_list_fromval(value);
+		    	as_arraylist_iterator it;
+		    	as_arraylist_iterator_init(&it, (const as_arraylist*)p_list);
+                    
+                // create a Lua inner table table for the "List"
+		    	lua_newtable(L);
+                    
+		    	int count = 0;
+		    	// See if the elements match what we expect.
+		    	while (as_arraylist_iterator_has_next(&it)) {
+		    		const as_val* p_val = as_arraylist_iterator_next(&it);
+		    		//Assume string
+		    		char* p_str = as_val_tostring(p_val);
+                    lua_pushnumber(L, count); // table[i]
+			    	lua_pushstring(L, p_str); //Value
+                    //printf("%d => %s\n", count, p_str);
+			    	count++;
+			    	lua_settable(L, -3);
+		    	}
+                //printf("--list-end-\n");
+                break;
 		    }
+		    //printf("--settable-\n");
 		    lua_settable(L, -3);
+		    //printf("--settable-end-\n");
 		}
 	}
 	as_record_destroy(rec);
 	as_key_destroy(&key);
+	//printf("-get-end-\n");
 	return 3;
 }
 
@@ -204,6 +274,12 @@ static int put(lua_State *L){
 	//Bins
 	as_record rec = add_bins_to_rec(L, 6, numBins);
 
+	//const as_record * test = &rec;
+	//if (as_val_type(as_record_get(test, "animals")) == AS_LIST)
+	//	printf("correct list\n");
+	//else
+	//	printf("not a list\n");
+
 	// Create key
 	as_key key;
 	as_error err;
@@ -212,6 +288,7 @@ static int put(lua_State *L){
 	// Write record
 	aerospike_key_put(as, &err, NULL, &key, &rec);
 	as_key_destroy(&key);
+    as_record_destroy(&rec);
 	// Return status
 	lua_pushnumber(L, err.code);
 	lua_pushstring(L, err.message);
