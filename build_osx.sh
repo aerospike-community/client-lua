@@ -1,2 +1,2 @@
 clang -std=gnu99 -g -Wall -fPIC -fno-common -fno-strict-aliasing -march=nocona -DMARCH_i386 -D_FILE_OFFSET_BITS=64 -D_REENTRANT -D_GNU_SOURCE -D_DARWIN_UNLIMITED_SELECT -I/usr/local/include -o src/as_lua.o -c src/as_lua.c
-clang -dynamiclib -o as_lua.so src/as_lua.o /usr/local/lib/libaerospike.a  -lssl -lcrypto -lpthread -L/usr/local/lib -llua -lm -lz
+clang -dynamiclib -o as_lua.so src/as_lua.o /usr/local/lib/libaerospike.a  -lssl -lcrypto -lpthread -L/usr/local/lib -lm -lz
