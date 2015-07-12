@@ -9,7 +9,7 @@ The solution is conceptually simple: Call the Aerospike C API from Lua. There is
 The source code for this solution is available on GitHub at 
 http://github.com/aerospike/client-lua. 
 
-The project also requires the Aerospike C client, which is available at http://github.com/aersopike/aerospike-client-c or from http://aerospike.com . You will need to build the client and have the Aerospike headers and libraries available in the search path.
+The project also requires the Aerospike C client, which is available at http://github.com/aerospike/aerospike-client-c or from http://aerospike.com . You will need to build the client and have the Aerospike headers and libraries available in the search path.
 
 
 You’ll need the Lua development environment, and the ```lua.h``` in the include path. You can include the Lua 5.0 or 5.1 environment from the source, or install a Lua development package with your package manager.
