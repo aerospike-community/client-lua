@@ -65,6 +65,20 @@ local function main()
   err, message, record = as.get(cluster, "test", "test", "peter004")
   print("read record", err, message)
   tprint(record, 1)
+
+  bins = {}
+  bins["uid"] = "peter005"
+  bins["name"] = "Peter5"
+  bins["dob"] = 19800102
+  bins["animals"] = {"cats","mice","dogs","elephants","snakes"}
+  bins["weight"] = 72.5
+
+  err, message = as.put(cluster, "test", "test", "peter005", 5, bins)
+  print("saved record peter005", err, message)
+
+  err, message, record = as.get(cluster, "test", "test", "peter005")
+  print("read record", err, message)
+  tprint(record, 1)
   
   err, message = as.disconnect(cluster)
   print("disconnected", err, message)
