@@ -1,9 +1,9 @@
-#Calling Aerospike from Lua
-##Problem
+# Calling Aerospike from Lua
+## Problem
 You are using [Lua](http://www.lua.org/) and would like to make calls to an Aerospike database. But Aerospike does not provide a Lua Client API.
 
 You may be using Lua within application servers like Nginx, BarracudaDrive, Mako, OpenResty, Kepler, etc - similar to how Javascript is used inside Node.
-##Solution
+## Solution
 The solution is conceptually simple: Call the Aerospike C API from Lua. There is extensive Lua documentation and many books and blogs that describe calling C from Lua. This example demonstrates how to wrap the Aerospike C client API so it can be called from Lua.
 
 The source code for this solution is available on GitHub at 
@@ -13,7 +13,7 @@ The project also requires the Aerospike C client, which is available at http://g
 
 
 You’ll need the Lua development environment, and the ```lua.h``` in the include path. You can include the Lua 5.0 or 5.1 environment from the source, or install a Lua development package with your package manager.
-###Build Instructions
+### Build Instructions
 
 In this example, we will wrap 5 basic Aerospike key-value operations:
  1. **Connect** - connect to an Aerospike cluster
@@ -46,7 +46,7 @@ The shared library “as_lua.so” has dependencies on the Aerospike C Client AP
 /usr/local/lib/lua/5.1/as_lua.so
 /usr/lib/lua/5.1/as_lua.so
 ```
-###Lua application to calling Aerospike
+### Lua application to calling Aerospike
 
 This example includes a simple Lua program that exercises each function implemented in the library. You will find code in the file ```main.lua``` in the “test” subdirectory.
 
@@ -55,7 +55,7 @@ This is a C library that calls the Aerospike 3 C Client API.
 This project has all the same dependencies as the Aerospike C Client API. It will only run on the same platforms supported by the C Client. 
 
 
-##Discussion
+## Discussion
 The functions that will be exposed to Lua are defined in the following code:
 ```c
 static const struct luaL_Reg as_client [] = {
@@ -82,7 +82,7 @@ The C function ```lua_open_aerospike``` is called by the Lua function require ``
 ```lua
 local as = require "as_lua"
 ``` 
-###Connect
+### Connect
 To connect to an Aerospike cluster you need to supply one or more “seed nodes” and ports.  When a client application connects to a cluster, one name or IP address and port is sufficient. The Aerospike intelligent client will discover all the nodes in the cluster and become a 1st class observer of them. Additional nodes can be supplied at connection time in case the node you have specified is actually down.
 
 Our Lua function will take one seed node address and port, and return a handle to a cluster.
@@ -139,7 +139,7 @@ Note that there are 3 return values:
 - error message
 - cluster pointer
 
-###Disconnect
+### Disconnect
 When your Lua application has completed using Aerospike, usually at the end of the Lua code, it should disconnect from the Aerospike cluster. This frees resources in the process, things like socket connections, file descriptors, etc.
 
 Our Lua function to disconnect from the cluster will take one parameter that is the cluster handle.
@@ -159,7 +159,7 @@ static int disconnect(lua_State *L){
 }
 ```
 You should be seeing a pattern emerging in the way the parameters are passed to the function and how values are returned. The actual code that interacts with Aerospike is trivial. Most of the work in this function is to obtain the pointer to the cluster and return 2 values to Lua
-###Get
+### Get
 To read a record from Aerospike you use the ```get``` function. The cluster handle, obtained from the ```connect``` function, is the first argument and is the reference the ```get``` function uses to interact with the cluster.
 
 The next 3 parameters are ```namespace```, ```set``` and ```key```, in that order. These values uniquely identify the record.
@@ -171,7 +171,7 @@ The ```get``` function returns 3 values. The 1st is the error code, the second i
 
 You will note that this function reads all the Bins in the record and is the easiest to implement. A better implementation would offer the capability to read a subset of Bins. We will leave that activity up to the reader.
 
-###Put
+### Put
 To write data to Aerospike you use the ```put``` function. The cluster handle, obtained from the ```connect``` function, is the first argument and is the reference the ```put``` function uses to interact with the cluster.
 
 The next 3 parameters are ```namespace```, ```set``` and ```key```, in that order. These values uniquely identify the record.
@@ -234,7 +234,7 @@ static as_record add_bins_to_rec(lua_State *L, int index, int numBins)
     return rec;
 }
 ```
-###Increment
+### Increment
 The increment function is quite similar to the put function in that it changes the value of one or more Bins in a record. It is useful when your application uses counters, and it also removes the need to read the value, increment the value in your application and rewrite it.
 ```lua
 bins = {}
