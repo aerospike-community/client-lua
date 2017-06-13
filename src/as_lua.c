@@ -209,6 +209,13 @@ static int get(lua_State *L){
 		    	lua_pushnumber(L, as_integer_get(as_integer_fromval(value)));
 		    	//printf("--integer-end-\n");
 		    	break;
+		    case AS_DOUBLE:
+                   
+		    	//printf("--double-%s-\n", binName);
+			    lua_pushstring(L, binName); //Bin name
+		    	lua_pushnumber(L, as_double_get(as_double_fromval(value)));
+		    	//printf("--double-end-\n");
+		    	break;
 		    case AS_STRING:
 		    	//printf("--string-%s-\n", binName);
 			    lua_pushstring(L, binName); //Bin name
