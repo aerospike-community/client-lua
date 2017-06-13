@@ -137,8 +137,9 @@ static int connect(lua_State *L){
 	as_config_init(&config);
 
 	// Add a seed host for cluster discovery.
-	config.hosts[0].addr = hostName;
-	config.hosts[0].port = port;
+	//config.hosts[0].addr = hostName;
+	//config.hosts[0].port = port;
+	as_config_add_host(&config, hostName, port);
 
 	// The Aerospike client instance, initialized with the configuration.
 	aerospike as;
