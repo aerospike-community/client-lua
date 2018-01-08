@@ -22,7 +22,13 @@ local function main()
   local cluster
   
   err, message, cluster = as.connect("127.0.0.1", 3000)
-  print("## connected ##", err, message)
+
+  if err ~= 0 then
+    print(err, message)
+    return
+  end
+
+  print("## connected ##")
   
   local bins = {}
   bins["uid"] = "peter001"

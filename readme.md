@@ -59,17 +59,17 @@ This project has all the same dependencies as the Aerospike C Client API. It wil
 The functions that will be exposed to Lua are defined in the following code:
 ```c
 static const struct luaL_Reg as_client [] = {
-		{"connect", connect},
-		{"disconnect", disconnect},
-		{"get", get},
-		{"put", put},
-		{"increment", increment},
-		{NULL, NULL}
+    {"connect", connect},
+    {"disconnect", disconnect},
+    {"get", get},
+    {"put", put},
+    {"increment", increment},
+    {NULL, NULL}
 };
 
 extern int luaopen_as_lua(lua_State *L){
-	luaL_register(L, "as_lua", as_client);
-	return 0;
+  luaL_register(L, "as_lua", as_client);
+  return 0;
 }
 ```
 This function is called by the require statement in Lua. When require is called, Lua will look for a library named ```as_lua.so``` on its library path. Be sure to put ```as_lua.so``` in one of the following directories, depending on your Lua installation:
@@ -96,30 +96,28 @@ Connect will return 3 values, in the above example, the variables ```err``` and 
 The C code to implement this function:
 ```c
 static int connect(lua_State *L){
-	const char *hostName = luaL_checkstring(L, 1);
-	int port = lua_tointeger(L, 2);
-	as_error err;
+  const char *hostName = luaL_checkstring(L, 1);
+  int port = lua_tointeger(L, 2);
+  as_error err;
 
-	// Configuration for the client.
-	as_config config;
-	as_config_init(&config);
+  // Configuration for the client.
+  as_config config;
+  as_config_init(&config);
 
-	// Add a seed host for cluster discovery.
-	config.hosts[0].addr = hostName;
-	config.hosts[0].port = port;
+  // Add a seed host for cluster discovery.
+  as_config_add_host(&config, hostName, port);
 
-	// The Aerospike client instance, initialized with the configuration.
-	aerospike as;
-	aerospike_init(&as, &config);
+  // The Aerospike client instance, initialized with the configuration.
+  aerospike_init(&as, &config);
 
-	// Connect to the cluster.
-	aerospike_connect(&as, &err);
+  // Connect to the cluster.
+  aerospike_connect(&as, &err);
 
-	/* Push the return */
-	lua_pushnumber(L, err.code);
-	lua_pushstring(L, err.message);
-	lua_pushlightuserdata(L, &as);
-	return 3;
+  /* Push the return */
+  lua_pushnumber(L, err.code);
+  lua_pushstring(L, err.message);
+  lua_pushlightuserdata(L, &as);
+  return 3;
 }
 ```
 Lua uses its own stack mechanism to pass parameters between Lua and C. You will note at the start of this function, parameters are taken from the stack
@@ -150,12 +148,12 @@ Our Lua function to disconnect from the cluster will take one parameter that is 
 The C code to implement this function:
 ```c
 static int disconnect(lua_State *L){
-	aerospike* as = lua_touserdata(L, 1);
-	as_error err;
-	aerospike_close(as, &err);
-	lua_pushnumber(L, err.code);
-	lua_pushstring(L, err.message);
-	return 2;
+  aerospike* as = lua_touserdata(L, 1);
+  as_error err;
+  aerospike_close(as, &err);
+  lua_pushnumber(L, err.code);
+  lua_pushstring(L, err.message);
+  return 2;
 }
 ```
 You should be seeing a pattern emerging in the way the parameters are passed to the function and how values are returned. The actual code that interacts with Aerospike is trivial. Most of the work in this function is to obtain the pointer to the cluster and return 2 values to Lua
@@ -214,12 +212,12 @@ static as_record add_bins_to_rec(lua_State *L, int index, int numBins)
 
         // add to record
         if (lua_isnumber(L, -2)){
-        	int intValue = lua_tointeger(L, -2);
-        	as_record_set_int64(&rec, key, intValue);
+          int intValue = lua_tointeger(L, -2);
+          as_record_set_int64(&rec, key, intValue);
 
         } else if (lua_isstring(L, -2)){
-        	const char *value = lua_tostring(L, -2);
-        	as_record_set_str(&rec, key, value);
+          const char *value = lua_tostring(L, -2);
+          as_record_set_str(&rec, key, value);
         }
         // pop value + copy of key, leaving original key
         lua_pop(L, 2);

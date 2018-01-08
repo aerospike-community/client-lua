@@ -22,11 +22,13 @@
 #include <aerospike/as_list.h>
 #include <aerospike/as_map.h>
 
+// Allow only one global aerospike instance.
+aerospike as;
 
 static as_record add_bins_to_rec(lua_State *L, int index, int numBins)
 {
-       as_record rec;
-       as_record_init(&rec, numBins);
+    as_record rec;
+    as_record_init(&rec, numBins);
 
     // Push another reference to the table on top of the stack (so we know
     // where it is, and this function can work for negative, positive and
@@ -142,7 +144,6 @@ static int connect(lua_State *L){
 	as_config_add_host(&config, hostName, port);
 
 	// The Aerospike client instance, initialized with the configuration.
-	aerospike as;
 	aerospike_init(&as, &config);
 
 	// Connect to the cluster.
