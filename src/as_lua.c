@@ -330,12 +330,32 @@ static int increment(lua_State *L){
 	return 2;
 }
 
+static int delete(lua_State *L){
+	as_error err;
+	aerospike* as = lua_touserdata(L, 1);
+	const char* nameSpace = luaL_checkstring(L, 2);
+	const char* set = luaL_checkstring(L, 3);
+	const char* keyString = luaL_checkstring(L, 4);
+
+	as_key key;
+	as_key_init(&key, nameSpace, set, keyString);
+
+	aerospike_key_remove(as, &err, NULL, &key);
+
+	as_key_destroy(&key);
+
+	lua_pushnumber(L, err.code);
+	lua_pushstring(L, err.message);
+	return 2;
+}
+
 static const struct luaL_Reg as_client [] = {
 		{"connect", connect},
 		{"disconnect", disconnect},
 		{"get", get},
 		{"put", put},
 		{"increment", increment},
+		{"delete", delete},
 		{NULL, NULL}
 };
 
